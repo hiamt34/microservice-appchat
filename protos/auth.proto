@@ -1,0 +1,51 @@
+syntax = "proto3";
+package auth;
+service AuthService {
+    rpc Login (User) returns (Tokens) {}
+    rpc LoginOauth (UserLoginOauth) returns (Tokens) {}
+    rpc Register (UserRegister) returns (Tokens) {}
+    rpc GetAccessToken (RefreshToken) returns (AccessToken) {}
+    rpc ValidateToken (AccessToken) returns (TokenExit) {}
+    rpc Logout (Tokens) returns (Empty) {}
+}
+
+message Empty {}
+message User {
+    string email = 1;
+    string password = 2;
+}
+
+message Tokens {
+    string accessToken = 1;
+    string refreshToken = 2;
+}
+
+message AccessToken {
+    string accessToken = 1;
+}
+
+message RefreshToken {
+    string refreshToken = 1;
+}
+
+message TokenExit {
+    string email = 1;
+    string name = 2;
+    string role = 3;
+    bool status = 4;
+    string _id = 5;
+}
+
+message UserRegister {
+    string email = 1;
+    string password = 2;
+    string name = 3;
+}
+
+message UserLoginOauth {
+    string email = 1;
+    string password = 2;
+    string name = 3;
+    string photo = 4;
+    string authType = 5;
+}

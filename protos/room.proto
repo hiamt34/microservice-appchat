@@ -1,0 +1,40 @@
+syntax = "proto3";
+package room;
+service RoomService {
+    rpc GetRoom (UserId) returns (RoomList) {}
+    rpc GetRoomById (RoomId) returns (Room) {}
+    rpc Insert (Room) returns (Room) {}
+    rpc InsertUserForRoom (InsertUserForRoom) returns (Empty) {}
+    rpc OutRoom (OutRoom) returns (Empty) {}
+}
+
+message Empty {}
+
+message UserId {
+    string userId =1;
+}
+
+message RoomId {
+    string roomId =1;
+}
+
+message Room {
+    string _id = 1;
+    string name = 2;
+    repeated string members = 3;
+}
+
+message RoomList {
+    repeated Room rooms = 1;
+}
+
+message InsertUserForRoom{
+    string userId =1;
+    string roomId =2;
+}
+
+message OutRoom {
+    string userId =1;
+    string roomId =2;
+}
+

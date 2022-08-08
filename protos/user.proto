@@ -1,0 +1,54 @@
+syntax = "proto3";
+package user;
+service UserService {
+    rpc GetAll (GetAllAndSearch) returns (UserList) {}
+    rpc Get (UserRequestId) returns (User) {}
+    rpc Insert (User) returns (User) {}
+    rpc Update (UserUpdate) returns (User) {}
+    rpc Remove (UserRequestId) returns (Empty) {}
+    rpc IsExitUser(UserLogin) returns (User) {}
+    rpc IsExitEmailAndInsert(User) returns (User) {}
+}
+
+message Empty {}
+message GetAllAndSearch {
+    string name = 1;
+    repeated string ids = 2;
+}
+message User {
+    string _id = 1;
+    string name = 2;
+    string authType = 3;
+    string role = 4;
+    string email = 5;
+    bool status = 6;
+    string photo = 7;
+}
+
+message UserUpdate {
+    string _id = 1;
+    string name = 2;
+    string authType = 3;
+    string role = 4;
+    bool status = 6;
+    string photo = 7;
+    string password =8;
+}
+
+message UserList {
+    repeated User users = 1;
+}
+
+message UserRequestId {
+    string _id = 1;
+}
+
+message Email {
+    string email = 1;
+}
+
+message UserLogin {
+    string email = 1;
+    string password = 2;
+}
+

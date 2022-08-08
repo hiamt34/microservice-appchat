@@ -1,0 +1,2 @@
+yarn proto-loader-gen-types --grpcLib=@grpc/grpc-js --outDir=protos/interfaces protos/*.proto
+nodemon --config nodemon.json socket-server/socket-server.ts
