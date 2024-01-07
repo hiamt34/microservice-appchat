@@ -22,7 +22,9 @@ export class AuthService implements AuthServiceHandlers {
         async (call, callback) => {
             const { refreshToken } = call.request as RefreshToken__Output
             //check refreshtoken va lay accesstoken moi ... và lưu lại accesstoken do
-            const isRefreshToken = await dbRedis.exists(refreshToken as string)
+            const isRefreshToken = await (
+                await dbRedis
+            ).exists(refreshToken as string)
 
             if (isRefreshToken) {
                 let user = jwt.verify(
@@ -47,11 +49,10 @@ export class AuthService implements AuthServiceHandlers {
                     }
                 )
 
-                await dbRedis.set(accessToken, user.email as string)
-                await dbRedis.expire(
-                    accessToken,
-                    Number(process.env.ACCESS_TOKEN_LIFE_RD)
-                )
+                await (await dbRedis).set(accessToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(accessToken, Number(process.env.ACCESS_TOKEN_LIFE_RD))
                 return callback(null, {
                     accessToken,
                 })
@@ -93,16 +94,17 @@ export class AuthService implements AuthServiceHandlers {
                     }
                 )
                 // luu redis ...
-                await dbRedis.set(refreshToken, user.email as string)
-                await dbRedis.expire(
+                await (await dbRedis).set(refreshToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(
                     refreshToken,
                     Number(process.env.REFRESH_TOKEN_LIFE_RD)
                 )
-                await dbRedis.set(accessToken, user.email as string)
-                await dbRedis.expire(
-                    accessToken,
-                    Number(process.env.ACCESS_TOKEN_LIFE_RD)
-                )
+                await (await dbRedis).set(accessToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(accessToken, Number(process.env.ACCESS_TOKEN_LIFE_RD))
                 return callback(null, {
                     accessToken,
                     refreshToken,
@@ -148,16 +150,17 @@ export class AuthService implements AuthServiceHandlers {
                     }
                 )
                 //  luu redis ...
-                await dbRedis.set(refreshToken, user.email as string)
-                await dbRedis.expire(
+                await (await dbRedis).set(refreshToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(
                     refreshToken,
                     Number(process.env.REFRESH_TOKEN_LIFE_RD)
                 )
-                await dbRedis.set(accessToken, user.email as string)
-                await dbRedis.expire(
-                    accessToken,
-                    Number(process.env.ACCESS_TOKEN_LIFE_RD)
-                )
+                await (await dbRedis).set(accessToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(accessToken, Number(process.env.ACCESS_TOKEN_LIFE_RD))
 
                 callback(null, {
                     accessToken,
@@ -174,7 +177,9 @@ export class AuthService implements AuthServiceHandlers {
     ValidateToken: grpc.handleUnaryCall<AccessToken__Output, TokenExit> =
         async (call, callback) => {
             const { accessToken } = call.request as AccessToken__Output
-            const isAccessToken = await dbRedis.exists(accessToken as string)
+            const isAccessToken = await (
+                await dbRedis
+            ).exists(accessToken as string)
             if (isAccessToken) {
                 try {
                     const user = jwt.verify(
@@ -210,7 +215,7 @@ export class AuthService implements AuthServiceHandlers {
                     '_id',
                     'photo'
                 )
-                
+
                 const accessToken = jwt.sign(
                     user,
                     process.env.PRIVATE_KEY as string,
@@ -227,16 +232,17 @@ export class AuthService implements AuthServiceHandlers {
                     }
                 )
                 // luu redis ...
-                await dbRedis.set(refreshToken, user.email as string)
-                await dbRedis.expire(
+                await (await dbRedis).set(refreshToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(
                     refreshToken,
                     Number(process.env.REFRESH_TOKEN_LIFE_RD)
                 )
-                await dbRedis.set(accessToken, user.email as string)
-                await dbRedis.expire(
-                    accessToken,
-                    Number(process.env.ACCESS_TOKEN_LIFE_RD)
-                )
+                await (await dbRedis).set(accessToken, user.email as string)
+                await (
+                    await dbRedis
+                ).expire(accessToken, Number(process.env.ACCESS_TOKEN_LIFE_RD))
                 return callback(null, {
                     accessToken,
                     refreshToken,
@@ -253,12 +259,12 @@ export class AuthService implements AuthServiceHandlers {
         call,
         callback
     ) => {
-        let {accessToken, refreshToken} = call.request as Tokens__Output
-        accessToken = accessToken?.split(" ")[1]
-        refreshToken = refreshToken?.split(" ")[1]
-        await dbRedis.del(accessToken as string) 
-        await dbRedis.del(refreshToken as string)
-        callback(null,{})
+        let { accessToken, refreshToken } = call.request as Tokens__Output
+        accessToken = accessToken?.split(' ')[1]
+        refreshToken = refreshToken?.split(' ')[1]
+        await (await dbRedis).del(accessToken as string)
+        await (await dbRedis).del(refreshToken as string)
+        callback(null, {})
     }
 }
 export const authService = new AuthService()

@@ -10,6 +10,8 @@ import { dbRedis } from './conectDB-redis'
 
 dotenv.config()
 const PORT = process.env.PORT_AUTH_SEVER || 1001
+const HOST = process.env.HOST_AUTH_SEVER || '127.0.0.1'
+
 const PROTO_FILE = '../protos/auth.proto'
 
 const packageDef = protoLoader.loadSync(path.resolve(__dirname, PROTO_FILE), {
@@ -39,21 +41,23 @@ const getServer = () => {
 
 const runServer = () => {
     const server = getServer()
+    console.table({ authServer: { host: HOST, port: PORT } })
     server.bindAsync(
-        `127.0.0.1:${PORT}`,
+        `${HOST}:${PORT}`,
         grpc.ServerCredentials.createInsecure(),
-        (err, port) => {
+        async (err, port) => {
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return
             }
-            console.info('auth-server running ' + `127.0.0.1:${PORT}`)
+            logger.info('auth-server running ' + `${HOST}`)
             server.start()
-            dbRedis.connect()
+            ;(await dbRedis).connect()
         }
-    )    
+    )
 }
 
 runServer()
 //
 import '../client/auth-client'
+import { logger } from '../ultis/log'

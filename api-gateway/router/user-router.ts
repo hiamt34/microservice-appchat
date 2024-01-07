@@ -5,8 +5,8 @@ import { userGet, userSearch, userUpdateSchema } from '../middleware/userSchema'
 import { validate } from '../middleware/validateRequest.middleware'
 import { verifyToken } from '../middleware/verifyToken'
 const route = Router()
-const UserRouter = (app: Express) => {
-    app.use('/user', route)
+const UserRouter = (app: Express, version: string) => {
+    app.use(version + '/user', route)
     route.get(
         '/get-all',
         verifyToken,
@@ -84,7 +84,7 @@ const UserRouter = (app: Express) => {
                 ...req.body,
                 _id,
             }
-            userClient.Update( user , (err, data) => {
+            userClient.Update(user, (err, data) => {
                 if (!err) {
                     return res.status(201).json({
                         status: true,
@@ -106,13 +106,13 @@ const UserRouter = (app: Express) => {
         verifyToken,
         checkRole,
         async (req: Request, res: Response) => {
-            const  search  = req.body
+            const search = req.body
 
-            userClient.GetAll( search , (err, data) => {
+            userClient.GetAll(search, (err, data) => {
                 if (!err) {
                     return res.status(201).json({
                         status: true,
-                        data : data?.users,
+                        data: data?.users,
                     })
                 } else {
                     return res.status(500).json({

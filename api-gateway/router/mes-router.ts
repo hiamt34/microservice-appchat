@@ -5,8 +5,8 @@ import { mesGetMesInRoomSchema, mesInserSchema } from '../middleware/mesSchema'
 import { validate } from '../middleware/validateRequest.middleware'
 import { verifyToken } from '../middleware/verifyToken'
 const route = Router()
-export const MesRouter = (app: Express) => {
-    app.use('/mes', route)
+export const MesRouter = (app: Express, version: string) => {
+    app.use(version + '/mes', route)
     route.post(
         '/get-mess',
         verifyToken,
@@ -41,7 +41,7 @@ export const MesRouter = (app: Express) => {
         async (req: Request, res: Response) => {
             const data = req.body
             //@ts-ignore
-            data.senderId = req.user._id  // thằng nào có token thì là thằng đấy gửi
+            data.senderId = req.user._id // thằng nào có token thì là thằng đấy gửi
             mesClient.Insert(data, (err, data) => {
                 if (!err) {
                     return res.status(201).json({
@@ -58,5 +58,4 @@ export const MesRouter = (app: Express) => {
             })
         }
     )
-    
 }

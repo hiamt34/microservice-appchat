@@ -1,0 +1,18 @@
+FROM node:alpine
+
+WORKDIR /usr/src/app
+COPY package*.json ./
+
+RUN npm install typescript ts-node
+
+RUN npm install
+
+COPY client /usr/src/app/client
+COPY protos /usr/src/app/protos
+COPY models /usr/src/app/models
+COPY ultis /usr/src/app/ultis
+COPY tsconfig.json ./
+
+COPY mes-server /usr/src/app/mes-server
+
+CMD ["npx","ts-node", "mes-server/mes-server.ts"]

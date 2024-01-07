@@ -1,7 +1,8 @@
 import mongoose from "mongoose"
+import { logger } from '../ultis/log'
 
 export const connectDB = () => {
-    const dbUri = process.env.DB_URI || 'mongodb://localhost:27017/mes-server-msv'
+    const dbUri = process.env.DB_URI || 'mongodb://localhost:27017'
     const options = {
         useNewUrlParser: true,
         // useCreateIndex: true,
@@ -11,12 +12,12 @@ export const connectDB = () => {
     }
 
     return mongoose
-        .connect(dbUri, options)
+        .connect(dbUri + '/mes-server-msv?retryWrites=true&w=majority', options)
         .then(() => {
-            console.info('Database connected')
+            logger.info('Database connected')
         })
         .catch((error) => {
-            console.error('DB error', error)
+            logger.error('DB error', error)
             process.exit(1)
         })
 }

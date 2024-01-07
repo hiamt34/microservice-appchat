@@ -1,0 +1,17 @@
+FROM node:alpine
+
+WORKDIR /usr/src/app
+COPY package*.json ./
+
+RUN npm install typescript ts-node
+
+RUN npm install
+
+COPY client /usr/src/app/client
+COPY protos /usr/src/app/protos
+COPY ultis /usr/src/app/ultis
+COPY tsconfig.json ./
+
+COPY auth-server /usr/src/app/auth-server
+EXPOSE 1001
+CMD ["npx","ts-node", "auth-server/auth-server.ts"]

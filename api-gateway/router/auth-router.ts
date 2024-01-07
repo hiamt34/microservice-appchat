@@ -17,8 +17,8 @@ interface IErrorResponse {
     status: boolean
 }
 
-const AuthRouter = (app: Express) => {
-    app.use('/auth', route)
+const AuthRouter = (app: Express, version: string) => {
+    app.use(version + '/auth', route)
 
     route.get('/signup/:token')
     route.post(
@@ -78,11 +78,11 @@ const AuthRouter = (app: Express) => {
                 },
             })
         }
-        authClient.GetAccessToken({refreshToken}, (err, data) => {
+        authClient.GetAccessToken({ refreshToken }, (err, data) => {
             if (!err) {
                 return res.status(200).json({
                     status: true,
-                    data
+                    data,
                 })
             }
             return res.status(200).json({
@@ -124,38 +124,48 @@ const AuthRouter = (app: Express) => {
     //     }
     // )
 
-    route.post('/oauth', validate(OauthSchema), async (req: Request, res: Response) => {
-        const dataLogin = req.body as any
-        dataLogin.password = 'oauth2'
-        authClient.LoginOauth(dataLogin, (err, data) => {
-            if (!err) {
-                return res.status(201).json({
-                    status: true,
-                    data,
-                })
-            } else {
-                return res.status(400).json({
-                    code: err?.code,
-                    message: err?.details,
-                    status: false,
-                })
-            }
-        })
-    })
+    route.post(
+        '/oauth',
+        validate(OauthSchema),
+        async (req: Request, res: Response) => {
+            const dataLogin = req.body as any
+            dataLogin.password = 'oauth2'
+            authClient.LoginOauth(dataLogin, (err, data) => {
+                if (!err) {
+                    return res.status(201).json({
+                        status: true,
+                        data,
+                    })
+                } else {
+                    return res.status(400).json({
+                        code: err?.code,
+                        message: err?.details,
+                        status: false,
+                    })
+                }
+            })
+        }
+    )
 
     route.post('/github', async (req: Request, res: Response) => {})
 
-    route.post('/logout', validate(LogoutSchema), async (req: Request, res: Response) => {
-        const tokens = req.body
-        authClient.Logout(tokens, () => {
-            return res.status(200).json({
-                status: true,
-                // data: {
-                //     code: 200,
-                // },
+    route.post(
+        '/logout',
+        validate(LogoutSchema),
+        async (req: Request, res: Response) => {
+            const tokens = req.body
+            authClient.Logout(tokens, () => {
+                return res.status(200).json({
+                    status: true,
+                    // data: {
+                    //     code: 200,
+                    // },
+                })
             })
-        })
-    })
+        }
+    )
+
+    return route
 }
 
 export default AuthRouter

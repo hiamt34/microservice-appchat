@@ -5,8 +5,8 @@ import { outRoomSchema, roomInsterSchema } from '../middleware/roomSchema'
 import { validate } from '../middleware/validateRequest.middleware'
 import { verifyToken } from '../middleware/verifyToken'
 const route = Router()
-export const RoomRouter = (app: Express) => {
-    app.use('/room', route)
+export const RoomRouter = (app: Express, version: string) => {
+    app.use(version + '/room', route)
     route.get(
         '/get-room',
         verifyToken,
@@ -14,7 +14,7 @@ export const RoomRouter = (app: Express) => {
         async (req: Request, res: Response) => {
             //@ts-ignore
             const userId = req.user?._id as string
-            roomClient.GetRoom({userId}, (err, data) => {
+            roomClient.GetRoom({ userId }, (err, data) => {
                 if (!err) {
                     return res.status(201).json({
                         status: true,

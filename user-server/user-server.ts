@@ -7,8 +7,11 @@ import dotenv from 'dotenv'
 import catchErrors from '../ultis/catchError'
 import userService from './user-service'
 import { connectDB } from './connectDB-mongodb'
+import { logger } from '../ultis/log'
 dotenv.config()
 const PORT = process.env.PORT_USER_SEVER || 1002
+const HOST = process.env.HOST_USER_SEVER || '127.0.0.1'
+
 const PROTO_FILE = '../protos/user.proto'
 
 const packageDef = protoLoader.loadSync(path.resolve(__dirname, PROTO_FILE))
@@ -36,14 +39,14 @@ function getServer() {
 function runServer() {
     const server = getServer()
     server.bindAsync(
-        `127.0.0.1:${PORT}`,
+        `${HOST}:${PORT}`,
         grpc.ServerCredentials.createInsecure(),
         (err, port) => {
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return
             }
-            console.info('user-server running ' + `127.0.0.1:${PORT}`)
+            logger.info('user-server running ' + `${HOST}:${PORT}`)
             server.start()
         }
     )

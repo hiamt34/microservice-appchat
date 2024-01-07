@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mes-server-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mes-server
+  template:
+    metadata:
+      labels:
+        app: mes-server
+    spec:
+      containers:
+        - name: mes-server
+          image: hiamt34/mes-server-app-chat
+          env:
+            - name: PORT_AUTH_SEVER
+              value: "1001"
+            - name: HOST_AUTH_SEVER
+              value: "auth-server-clusterip-srv"
+            - name: PORT_MES_SEVER
+              value: "1004"
+            - name: HOST_MES_SEVER
+              value: "0.0.0.0"
+            - name: PORT_ROOM_SEVER
+              value: "1003"
+            - name: HOST_ROOM_SEVER
+              value: "room-server-clusterip-srv"
+            - name: PORT_USER_SEVER
+              value: "1002"
+            - name: HOST_USER_SEVER
+              value: "user-server-clusterip-srv"
+            - name: DB_URI
+              value: "mongodb+srv://d17dccn195:HGzmf4T3cRgC3Pqp@chat-microservice.mnefmvv.mongodb.net"
+            - name: SERVERNAME
+              value: "mes-server"
+          ports:
+            - containerPort: 1004
+          volumeMounts:
+            - name: log
+              mountPath: /usr/src/app/logs
+        - name: filebeat
+          image: elastic/filebeat:7.16.3
+          args:
+            - -c
+            - /etc/filebeat/conf.yaml
+            - -e
+          volumeMounts:
+            - name: filebeat-config
+              mountPath: /etc/filebeat
+            - name: log
+              mountPath: /var/log
+      volumes:
+        - name: log
+          emptyDir: {}
+        - name: filebeat-config
+          configMap:
+            name: filebeat-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mes-server-clusterip-srv
+spec:
+  type: ClusterIP
+  selector:
+    app: mes-server
+  ports:
+    - name: mes-server-clusterip
+      protocol: TCP
+      port: 1004
+      targetPort: 1004

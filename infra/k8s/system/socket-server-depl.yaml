@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socket-server-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: socket-server
+  template:
+    metadata:
+      labels:
+        app: socket-server
+    spec:
+      containers:
+        - name: socket-server
+          image: hiamt34/socket-server-app-chat
+          env:
+            - name: HOST_REDIS
+              value: "redis-clusterip-srv"
+            - name: PORT_REDIS
+              value: "6379"
+            - name: PORT_IO_SERVER
+              value: "1005"
+            - name: SERVERNAME
+              value: "socket-server"
+          ports:
+            - containerPort: 1005
+          volumeMounts:
+            - name: log
+              mountPath: /usr/src/app/logs
+        - name: filebeat
+          image: elastic/filebeat:7.16.3
+          args:
+            - -c
+            - /etc/filebeat/conf.yaml
+            - -e
+          volumeMounts:
+            - name: filebeat-config
+              mountPath: /etc/filebeat
+            - name: log
+              mountPath: /var/log
+      volumes:
+        - name: log
+          emptyDir: {}
+        - name: filebeat-config
+          configMap:
+            name: filebeat-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: socket-server-clusterip-srv
+spec:
+  type: NodePort
+  selector:
+    app: socket-server
+  ports:
+    - name: socket-server-clusterip
+      protocol: TCP
+      port: 1005
+      targetPort: 1005
+      nodePort: 30005

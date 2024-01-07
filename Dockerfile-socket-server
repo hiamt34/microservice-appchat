@@ -1,0 +1,14 @@
+FROM node:alpine
+
+WORKDIR /usr/src/app
+COPY package*.json ./
+
+RUN npm install typescript ts-node
+
+RUN npm install
+COPY ultis /usr/src/app/ultis
+COPY tsconfig.json ./
+
+COPY socket-server /usr/src/app/socket-server
+
+CMD ["npx","ts-node", "socket-server/socket-server.ts"]

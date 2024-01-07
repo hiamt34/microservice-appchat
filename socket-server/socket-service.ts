@@ -1,3 +1,6 @@
+import { logger } from '../ultis/log'
+import { pubClient } from './socket-server'
+
 interface IUser {
     userId: string
     socketId: string
@@ -5,79 +8,125 @@ interface IUser {
 interface INotifyMsg {
     userId: string
     roomId: string
+    receiverID?: string
 }
-
+enum TYPE_OBJ {
+    USER = 'USER-SOCKET-CHAT',
+    NOTIFY = 'NOTIFY-SOCKET-CHAT',
+}
 class SocketService {
-    private users: IUser[]
-    private notifyMsgs: INotifyMsg[]
+    // private users: IUser[]
+    // private notifyMsgs: INotifyMsg[]
     constructor() {
-        this.users = []
-        this.notifyMsgs = []
+        // this.users = [] // cần đưa lên redis đồng bộ
+        // this.notifyMsgs = []
     }
-    addUser = (user: IUser) => {
-        this.users.some((u) => u.userId === user.userId) ||
-            this.users.push(user)        
+    addUser = async (user: IUser) => {
+        const datas = await this.getUsers()
+        const isExis = datas.some((u) => u.userId === user.userId)
+        if (!isExis) {
+            datas.push(user)
+            await this.syncRedis(TYPE_OBJ.USER, datas)
+        }
     }
-    removeUser = (socketId: string) => {
-        this.users = this.users.filter((u) => u.socketId !== socketId)
+    removeUser = async (socketId: string) => {
+        let datas = await this.getUsers()
+        const user = datas.find((user) => user.socketId === socketId)
+        datas = datas.filter((u) => u.userId !== user?.userId)
+        await this.syncRedis(TYPE_OBJ.USER, datas)
     }
-    addNotifyMsg = (msg: INotifyMsg) => {
-        this.notifyMsgs.push(msg)
+    addNotifyMsg = async (msg: INotifyMsg) => {
+        const datas = await this.getNotify()
+        datas.push(msg)
+        await this.syncRedis(TYPE_OBJ.NOTIFY, datas)
     }
-    removeNotifyMsg = (roomId: string, userId: string) => {
-        this.notifyMsgs = this.notifyMsgs.filter(n => (n.roomId !== roomId && n.userId === userId))
+    removeNotifyMsg = async (roomId: string, userId: string) => {
+        const datas = (await this.getNotify()).filter(
+            (n) => n.roomId !== roomId && n.userId === userId
+        )
+        await this.syncRedis(TYPE_OBJ.NOTIFY, datas)
     }
-    getNotifyMsgOfUser = (userId: string): INotifyMsg[] => {
-        return this.notifyMsgs.filter(n => n.userId === userId)
+    getNotifyMsgOfUser = async (userId: string): Promise<INotifyMsg[]> => {
+        return (await this.getNotify()).filter((n) => n.userId === userId)
     }
-    connection = (socket)  => {                
-        socket.on('user-connect', (userId) => {      
-            console.log('connect',userId);
+    syncRedis = async (type: TYPE_OBJ, datas) => {
+        switch (type) {
+            case TYPE_OBJ.USER:
+                await pubClient.set(TYPE_OBJ.USER, JSON.stringify(datas || []))
+                break
+            case TYPE_OBJ.NOTIFY:
+                await pubClient.set(
+                    TYPE_OBJ.NOTIFY,
+                    JSON.stringify(datas || [])
+                )
+                break
+            default:
+                break
+        }
+    }
+    getUsers = async (): Promise<IUser[]> => {
+        return JSON.parse((await pubClient.get(TYPE_OBJ.USER)) || '[]')
+    }
+    getUserBySocketId = async (
+        socketID: string
+    ): Promise<IUser | undefined> => {
+        const datas = await this.getUsers()
+        return datas.find((user) => user.socketId === socketID)
+    }
+    getNotify = async (): Promise<INotifyMsg[]> => {
+        return JSON.parse((await pubClient.get(TYPE_OBJ.NOTIFY)) || '[]')
+    }
+    connection = (socket) => {
+        socket.on('user-connect', async (userId) => {
+            logger.info('connect', userId)
 
             socket.join(userId) // tao ket noi chi co server va client
-            this.addUser({userId, socketId: socket.id})    // check online        
-            global._io.emit('get-users', this.users)
-            global._io.emit('notifys', this.getNotifyMsgOfUser(userId))
+            await this.addUser({ userId, socketId: socket.id }) // check online
+            global._io.emit('get-users', await this.getUsers())
+            global._io.emit('notifys', await this.getNotifyMsgOfUser(userId))
         })
-        socket.on('disconnect', () => {
-            this.removeUser(socket.id)
-            global._io.emit('get-users', this.users)
+        socket.on('disconnect', async () => {
+            await this.removeUser(socket.id)
+            global._io.emit('get-users', await this.getUsers())
         })
 
-        socket.on('chat-messager',({msg, members}) => {    
-            
-            let socketCustom = socket  
-            members.forEach(member => {
-                if(member !== msg.senderId) {
+        socket.on('chat-messager', async ({ msg, members }) => {
+            let socketCustom = socket
+            for (let i = 0; i < members.length; i++) {
+                const member = members[i]
+                if (member !== msg.senderId) {
                     socketCustom = socketCustom.to(member)
-                    this.addNotifyMsg({
+                    await this.addNotifyMsg({
                         userId: member,
-                        roomId: msg.roomId
+                        roomId: msg.roomId,
+                        receiverID: (
+                            await this.getUserBySocketId(socket.id)
+                        )?.userId,
                     })
                 }
-            })      
-            
+            }
             socketCustom.emit('message', msg)
-            
         })
 
-        socket.on('get-notifys', (userId) => {
-            global._io.emit('notifys', this.getNotifyMsgOfUser(userId))
+        socket.on('get-notifys', async (userId) => {
+            global._io.emit('notifys', await this.getNotifyMsgOfUser(userId))
         })
 
-        socket.on('delete-notify', ({userId, roomId}) => {
-            
-            this.removeNotifyMsg(roomId, userId)            
-            global._io.to(userId).emit('notifys', this.getNotifyMsgOfUser(userId))
+        socket.on('delete-notify', async ({ userId, roomId }) => {
+            await this.removeNotifyMsg(roomId, userId)
+            global._io
+                .to(userId)
+                .emit('notifys', await this.getNotifyMsgOfUser(userId))
         })
 
-        socket.on('out-room',(members) => {                
-            let socketCustom = socket  
-            members.forEach(member => {socketCustom = socketCustom.to(member)})      
+        socket.on('out-room', (members) => {
+            let socketCustom = socket
+            members.forEach((member) => {
+                socketCustom = socketCustom.to(member)
+            })
             socketCustom.emit('update-rooms')
         })
     }
-    
 }
 
 const socketService = new SocketService()

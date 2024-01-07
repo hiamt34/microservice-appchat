@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile-api-gateway
+    volumes:
+      - ./src:/home/node/app/src
+      - ./nodemon.json:/home/node/app/nodemon.json
+    container_name: api-gateway
+    image: hiamt34/api-gateway-app-chat
+    expose:
+      - "1000"
+    ports:
+      - "1000:1000"
+    environment:
+      - PORT=1000
+    # command: npm run api-gateway
