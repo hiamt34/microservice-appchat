@@ -1,9 +1,16 @@
 import * as grpc from '@grpc/grpc-js'
+import {
+    trace,
+    context,
+    propagation,
+    Span,
+    SpanStatusCode,
+} from '@opentelemetry/api'
 const BAD_REQ = 400
 const Internal_Server_Error = 500
 const catchErrors = (fn: Function) => {
     return function (_: any, callback: any) {
-        fn(_, callback).catch((err: any) => {                        
+        fn(_, callback).catch((err: any) => {
             if (typeof err === 'string') {
                 callback({
                     code: BAD_REQ,

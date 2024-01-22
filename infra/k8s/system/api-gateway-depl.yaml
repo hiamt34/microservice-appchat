@@ -1,76 +1,78 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway-depl
+    name: api-gateway-depl
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: api-gateway
-  template:
-    metadata:
-      labels:
-        app: api-gateway
-    spec:
-      containers:
-        - name: api-gateway
-          image: hiamt34/api-gateway-app-chat
-          env:
-            - name: PORT_API_GATEWAY
-              value: "1000"
-            - name: PORT_AUTH_SEVER
-              value: "1001"
-            - name: HOST_AUTH_SEVER
-              value: "auth-server-clusterip-srv"
-            - name: PORT_MES_SEVER
-              value: "1004"
-            - name: HOST_MES_SEVER
-              value: "mes-server-clusterip-srv"
-            - name: PORT_ROOM_SEVER
-              value: "1003"
-            - name: HOST_ROOM_SEVER
-              value: "room-server-clusterip-srv"
-            - name: PORT_USER_SEVER
-              value: "1002"
-            - name: HOST_USER_SEVER
-              value: "user-server-clusterip-srv"
-            - name: SERVERNAME
-              value: "api-gateway"
-          ports:
-            - containerPort: 1000  # Sửa lỗi: sử dụng containerPort thay vì containersPort
-          volumeMounts:
-            - name: log
-              mountPath: /usr/src/app/logs
-        - name: filebeat
-          image: elastic/filebeat:7.16.3
-          args:
-            - -c
-            - /etc/filebeat/conf.yaml
-            - -e
-          volumeMounts:
-            - name: filebeat-config
-              mountPath: /etc/filebeat
-            - name: log
-              mountPath: /var/log
-      volumes:
-        - name: log
-          emptyDir: {}
-        - name: filebeat-config
-          configMap:
-            name: filebeat-config
+    replicas: 1
+    selector:
+        matchLabels:
+            app: api-gateway
+    template:
+        metadata:
+            labels:
+                app: api-gateway
+        spec:
+            containers:
+                - name: api-gateway
+                  image: hiamt34/api-gateway-app-chat
+                  env:
+                      - name: PORT_API_GATEWAY
+                        value: '1000'
+                      - name: PORT_AUTH_SEVER
+                        value: '1001'
+                      - name: HOST_AUTH_SEVER
+                        value: 'auth-server-clusterip-srv'
+                      - name: PORT_MES_SEVER
+                        value: '1004'
+                      - name: HOST_MES_SEVER
+                        value: 'mes-server-clusterip-srv'
+                      - name: PORT_ROOM_SEVER
+                        value: '1003'
+                      - name: HOST_ROOM_SEVER
+                        value: 'room-server-clusterip-srv'
+                      - name: PORT_USER_SEVER
+                        value: '1002'
+                      - name: HOST_USER_SEVER
+                        value: 'user-server-clusterip-srv'
+                      - name: SERVERNAME
+                        value: 'api-gateway'
+                      - name: ZIPKIN_ENDPOINT
+                        value: http://jaeger:9411/api/v2/spans
+                  ports:
+                      - containerPort: 1000 # Sửa lỗi: sử dụng containerPort thay vì containersPort
+                  volumeMounts:
+                      - name: log
+                        mountPath: /usr/src/app/logs
+                - name: filebeat
+                  image: elastic/filebeat:7.16.3
+                  args:
+                      - -c
+                      - /etc/filebeat/conf.yaml
+                      - -e
+                  volumeMounts:
+                      - name: filebeat-config
+                        mountPath: /etc/filebeat
+                      - name: log
+                        mountPath: /var/log
+            volumes:
+                - name: log
+                  emptyDir: {}
+                - name: filebeat-config
+                  configMap:
+                      name: filebeat-config
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: api-gateway-clusterip-srv
+    name: api-gateway-clusterip-srv
 spec:
-  type: ClusterIP
-  selector:
-    app: api-gateway
-  ports:
-    - name: api-gateway-nodeport
-      protocol: TCP
-      port: 1000
-      targetPort: 1000
-      # nodePort: 30000
+    type: ClusterIP
+    selector:
+        app: api-gateway
+    ports:
+        - name: api-gateway-nodeport
+          protocol: TCP
+          port: 1000
+          targetPort: 1000
+          # nodePort: 30000

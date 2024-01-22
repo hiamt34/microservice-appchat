@@ -9,6 +9,8 @@ export interface User {
   'email'?: (string);
   'status'?: (boolean);
   'photo'?: (string);
+  'password'?: (string);
+  'traceContext'?: (string);
 }
 
 export interface User__Output {
@@ -19,4 +21,6 @@ export interface User__Output {
   'email'?: (string);
   'status'?: (boolean);
   'photo'?: (string);
+  'password'?: (string);
+  'traceContext'?: (string);
 }

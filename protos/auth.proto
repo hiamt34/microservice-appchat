@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package auth;
 service AuthService {
     rpc Login (User) returns (Tokens) {}
@@ -13,6 +14,7 @@ message Empty {}
 message User {
     string email = 1;
     string password = 2;
+    string traceContext = 3;
 }
 
 message Tokens {
@@ -40,6 +42,7 @@ message UserRegister {
     string email = 1;
     string password = 2;
     string name = 3;
+    string traceContext = 4;
 }
 
 message UserLoginOauth {

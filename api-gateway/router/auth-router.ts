@@ -1,8 +1,21 @@
 import { Express, Request, Response, Router } from 'express'
 import { authClient } from '../../client/auth-client'
-import { LogoutSchema, OauthSchema, signinSchema } from '../middleware/authSchema'
+import {
+    LogoutSchema,
+    OauthSchema,
+    signinSchema,
+} from '../middleware/authSchema'
 import { validate } from '../middleware/validateRequest.middleware'
 import passport from 'passport'
+import {
+    trace,
+    context,
+    propagation,
+    Span,
+    SpanStatusCode,
+} from '@opentelemetry/api'
+import { SERVERNAME } from '../api-gateway'
+import { logger } from '../../ultis/log'
 const route = Router()
 interface IResponse {
     code: number
@@ -25,20 +38,41 @@ const AuthRouter = (app: Express, version: string) => {
         '/signin',
         validate(signinSchema),
         async (req: Request, res: Response) => {
-            const dataLogin = req.body
-            authClient.Login(dataLogin, (err, data) => {
-                if (!err) {
-                    return res.status(201).json({
-                        status: true,
-                        data,
-                    })
-                } else {
-                    return res.status(400).json({
-                        code: err?.code,
-                        message: err?.details,
-                        status: false,
-                    })
-                }
+            const tracer = trace.getTracer(SERVERNAME)
+            return tracer.startActiveSpan('/signin', async (span: Span) => {
+                const traceHeaders = {}
+                // inject context to trace headers for propagtion to the next service
+                propagation.inject(context.active(), traceHeaders)
+                const dataLogin = req.body
+
+                authClient.Login(
+                    {
+                        ...dataLogin,
+                        traceContext: JSON.stringify(traceHeaders),
+                    },
+                    (err, data) => {
+                        if (!err) {
+                            span.setStatus({ code: SpanStatusCode.OK })
+                            span.end()
+
+                            return res.status(201).json({
+                                status: true,
+                                data,
+                            })
+                        } else {
+                            span.setStatus({
+                                code: SpanStatusCode.ERROR,
+                                message: err?.details,
+                            })
+                            span.end()
+                            return res.status(400).json({
+                                code: err?.code,
+                                message: err?.details,
+                                status: false,
+                            })
+                        }
+                    }
+                )
             })
         }
     )
@@ -47,21 +81,37 @@ const AuthRouter = (app: Express, version: string) => {
         '/register',
         validate(signinSchema),
         async (req: Request, res: Response) => {
-            const dataLogin = req.body
-            authClient.Register(dataLogin, (err, data) => {
-                if (!err) {
-                    return res.status(201).json({
-                        status: true,
-                        data,
-                    })
-                } else {
-                    return res.status(400).json({
-                        code: err?.code,
-                        message: err?.details,
-                        status: false,
-                    })
-                }
+            const tracer = trace.getTracer(SERVERNAME)
+            const span = tracer.startSpan('/register', {
+                root: true,
             })
+            const traceHeaders = {}
+            propagation.inject(context.active(), traceHeaders)
+            const dataLogin = req.body
+            authClient.Register(
+                { ...dataLogin, traceContext: JSON.stringify(traceHeaders) },
+                (err, data) => {
+                    if (!err) {
+                        span.setStatus({ code: SpanStatusCode.OK })
+                        span.end()
+                        return res.status(201).json({
+                            status: true,
+                            data,
+                        })
+                    } else {
+                        span.setStatus({
+                            code: SpanStatusCode.ERROR,
+                            message: err?.details,
+                        })
+                        span.end()
+                        return res.status(400).json({
+                            code: err?.code,
+                            message: err?.details,
+                            status: false,
+                        })
+                    }
+                }
+            )
         }
     )
 

@@ -15,7 +15,7 @@ import { dbRedis } from './conectDB-redis'
 import { UserRegister__Output } from '../protos/interfaces/auth/UserRegister'
 import { UserLoginOauth__Output } from '../protos/interfaces/auth/UserLoginOauth'
 import { Empty } from '../protos/interfaces/auth/Empty'
-
+import { trace, context, propagation, SpanStatusCode } from '@opentelemetry/api'
 export class AuthService implements AuthServiceHandlers {
     [name: string]: grpc.UntypedHandleCall
     GetAccessToken: grpc.handleUnaryCall<RefreshToken__Output, AccessToken> =
@@ -67,112 +67,170 @@ export class AuthService implements AuthServiceHandlers {
         callback
     ) => {
         let user = call.request as User__Output
-        userClient.IsExitUser(user, async (err, data) => {
-            if (!err || data) {
-                user = pick(
-                    data,
-                    'email',
-                    'status',
-                    'name',
-                    'role',
-                    '_id',
-                    'photo'
-                )
-                const accessToken = jwt.sign(
-                    user,
-                    process.env.PRIVATE_KEY as string,
-                    {
-                        expiresIn: process.env.ACCESS_TOKEN_LIFE,
-                    }
-                )
+        const traceHeaders = JSON.parse(
+            (call.request.traceContext as string) || '{}'
+        )
+        const spanContext = propagation.extract(context.active(), traceHeaders)
+        // Tạo span mới với context đã được trích xuất
+        const tracer = trace.getTracer('api-gateway')
+        const span = tracer.startSpan(
+            'authClient.Login',
+            {
+                root: false,
+            },
+            spanContext
+        )
 
-                const refreshToken = jwt.sign(
-                    user,
-                    process.env.PRIVATE_KEY as string,
-                    {
-                        expiresIn: process.env.REFRESH_TOKEN_LIFE,
-                    }
-                )
-                // luu redis ...
-                await (await dbRedis).set(refreshToken, user.email as string)
-                await (
-                    await dbRedis
-                ).expire(
-                    refreshToken,
-                    Number(process.env.REFRESH_TOKEN_LIFE_RD)
-                )
-                await (await dbRedis).set(accessToken, user.email as string)
-                await (
-                    await dbRedis
-                ).expire(accessToken, Number(process.env.ACCESS_TOKEN_LIFE_RD))
-                return callback(null, {
-                    accessToken,
-                    refreshToken,
+        userClient.IsExitUser(
+            { ...user, traceContext: JSON.stringify(traceHeaders) },
+            async (err, data) => {
+                if (!err || data) {
+                    user = pick(
+                        data,
+                        'email',
+                        'status',
+                        'name',
+                        'role',
+                        '_id',
+                        'photo'
+                    )
+                    const accessToken = jwt.sign(
+                        user,
+                        process.env.PRIVATE_KEY as string,
+                        {
+                            expiresIn: process.env.ACCESS_TOKEN_LIFE,
+                        }
+                    )
+
+                    const refreshToken = jwt.sign(
+                        user,
+                        process.env.PRIVATE_KEY as string,
+                        {
+                            expiresIn: process.env.REFRESH_TOKEN_LIFE,
+                        }
+                    )
+                    // luu redis ...
+                    await (
+                        await dbRedis
+                    ).set(refreshToken, user.email as string)
+                    await (
+                        await dbRedis
+                    ).expire(
+                        refreshToken,
+                        Number(process.env.REFRESH_TOKEN_LIFE_RD)
+                    )
+                    await (await dbRedis).set(accessToken, user.email as string)
+                    await (
+                        await dbRedis
+                    ).expire(
+                        accessToken,
+                        Number(process.env.ACCESS_TOKEN_LIFE_RD)
+                    )
+                    span.setStatus({ code: SpanStatusCode.OK })
+                    span.end()
+                    return callback(null, {
+                        accessToken,
+                        refreshToken,
+                    })
+                }
+                //loi hoac sai tk, maat khau, hoac validate
+                span.setStatus({
+                    code: SpanStatusCode.ERROR,
+                    message: err?.details,
+                })
+                span.end()
+                return callback({
+                    code: err?.code,
+                    details: err?.details,
                 })
             }
-            //loi hoac sai tk, maat khau, hoac validate
-
-            return callback({
-                code: err?.code,
-                details: err?.details,
-            })
-        })
+        )
+        // span.end()
     }
     Register: grpc.handleUnaryCall<UserRegister__Output, Tokens> = async (
         call,
         callback
     ) => {
         let user = call.request as UserRegister__Output
-        userClient.Insert(user, async (err, data) => {
-            if (!err) {
-                user = pick(
-                    data,
-                    'email',
-                    'status',
-                    'name',
-                    'role',
-                    '_id',
-                    'photo'
-                )
-                const accessToken = jwt.sign(
-                    user,
-                    process.env.PRIVATE_KEY as string,
-                    {
-                        expiresIn: process.env.ACCESS_TOKEN_LIFE,
-                    }
-                )
+        const traceHeaders = JSON.parse(
+            (call.request.traceContext as string) || '{}'
+        )
+        const spanContext = propagation.extract(context.active(), traceHeaders)
+        // Tạo span mới với context đã được trích xuất
+        const tracer = trace.getTracer('api-gateway')
+        const span = tracer.startSpan(
+            'authClient.Login',
+            {
+                root: false,
+            },
+            spanContext
+        )
+        userClient.Insert(
+            { ...user, traceContext: JSON.stringify(traceHeaders) },
+            async (err, data) => {
+                if (!err) {
+                    user = pick(
+                        data,
+                        'email',
+                        'status',
+                        'name',
+                        'role',
+                        '_id',
+                        'photo',
+                        'password'
+                    )
+                    const accessToken = jwt.sign(
+                        user,
+                        process.env.PRIVATE_KEY as string,
+                        {
+                            expiresIn: process.env.ACCESS_TOKEN_LIFE,
+                        }
+                    )
 
-                const refreshToken = jwt.sign(
-                    user,
-                    process.env.PRIVATE_KEY as string,
-                    {
-                        expiresIn: process.env.REFRESH_TOKEN_LIFE,
-                    }
-                )
-                //  luu redis ...
-                await (await dbRedis).set(refreshToken, user.email as string)
-                await (
-                    await dbRedis
-                ).expire(
-                    refreshToken,
-                    Number(process.env.REFRESH_TOKEN_LIFE_RD)
-                )
-                await (await dbRedis).set(accessToken, user.email as string)
-                await (
-                    await dbRedis
-                ).expire(accessToken, Number(process.env.ACCESS_TOKEN_LIFE_RD))
+                    const refreshToken = jwt.sign(
+                        user,
+                        process.env.PRIVATE_KEY as string,
+                        {
+                            expiresIn: process.env.REFRESH_TOKEN_LIFE,
+                        }
+                    )
+                    //  luu redis ...
+                    await (
+                        await dbRedis
+                    ).set(refreshToken, user.email as string)
+                    await (
+                        await dbRedis
+                    ).expire(
+                        refreshToken,
+                        Number(process.env.REFRESH_TOKEN_LIFE_RD)
+                    )
+                    await (await dbRedis).set(accessToken, user.email as string)
+                    await (
+                        await dbRedis
+                    ).expire(
+                        accessToken,
+                        Number(process.env.ACCESS_TOKEN_LIFE_RD)
+                    )
 
-                callback(null, {
-                    accessToken,
-                    refreshToken,
+                    span.setStatus({ code: SpanStatusCode.OK })
+                    span.end()
+                    callback(null, {
+                        accessToken,
+                        refreshToken,
+                    })
+                }
+                span.setStatus({
+                    code: SpanStatusCode.ERROR,
+                    message: err?.details,
+                })
+                span.end()
+                //loi hoac da ton tai email, hoac validate
+                return callback({
+                    code: err?.code,
+                    details: err?.details,
                 })
             }
-            //loi hoac da ton tai email, hoac validate
-            return callback({
-                code: err?.code,
-                details: err?.details,
-            })
-        })
+        )
     }
     ValidateToken: grpc.handleUnaryCall<AccessToken__Output, TokenExit> =
         async (call, callback) => {
@@ -213,7 +271,8 @@ export class AuthService implements AuthServiceHandlers {
                     'name',
                     'role',
                     '_id',
-                    'photo'
+                    'photo',
+                    'password'
                 )
 
                 const accessToken = jwt.sign(

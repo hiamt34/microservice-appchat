@@ -7,10 +7,15 @@ import dotenv from 'dotenv'
 import catchErrors from '../ultis/catchError'
 import { authService } from './auth-service'
 import { dbRedis } from './conectDB-redis'
+import '../client/auth-client'
+import { logger } from '../ultis/log'
+import { setupInstrumentation } from '../ultis/instrumentation'
 
 dotenv.config()
 const PORT = process.env.PORT_AUTH_SEVER || 1001
 const HOST = process.env.HOST_AUTH_SEVER || '127.0.0.1'
+export const SERVERNAME = process.env.SERVERNAME || 'AUTH_SEVER'
+setupInstrumentation(SERVERNAME as string, 'GRPC')
 
 const PROTO_FILE = '../protos/auth.proto'
 
@@ -59,5 +64,3 @@ const runServer = () => {
 
 runServer()
 //
-import '../client/auth-client'
-import { logger } from '../ultis/log'

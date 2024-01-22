@@ -23,6 +23,8 @@ message User {
     string email = 5;
     bool status = 6;
     string photo = 7;
+    string password =8;
+    string traceContext = 9;
 }
 
 message UserUpdate {
@@ -50,5 +52,6 @@ message Email {
 message UserLogin {
     string email = 1;
     string password = 2;
+    string traceContext = 3;
 }
 

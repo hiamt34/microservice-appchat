@@ -8,10 +8,12 @@ import catchErrors from '../ultis/catchError'
 import userService from './user-service'
 import { connectDB } from './connectDB-mongodb'
 import { logger } from '../ultis/log'
+import { setupInstrumentation } from '../ultis/instrumentation'
 dotenv.config()
 const PORT = process.env.PORT_USER_SEVER || 1002
 const HOST = process.env.HOST_USER_SEVER || '127.0.0.1'
-
+export const SERVERNAME = process.env.SERVERNAME || 'USER_SEVER'
+setupInstrumentation(SERVERNAME as string, 'GRPC')
 const PROTO_FILE = '../protos/user.proto'
 
 const packageDef = protoLoader.loadSync(path.resolve(__dirname, PROTO_FILE))

@@ -4,9 +4,11 @@
 export interface UserLogin {
   'email'?: (string);
   'password'?: (string);
+  'traceContext'?: (string);
 }
 
 export interface UserLogin__Output {
   'email'?: (string);
   'password'?: (string);
+  'traceContext'?: (string);
 }
