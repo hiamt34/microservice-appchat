@@ -1,3 +1,4 @@
 tạo secrest cho DB_URI
 hiểu sâu hơn về config chia namespaces cho từng môi trường ...
 healthcheck
+kubectl apply -f namefile -n namespaces
