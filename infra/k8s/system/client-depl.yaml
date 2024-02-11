@@ -26,20 +26,21 @@ kind: Service
 metadata:
     name: client-app-chat-serv
 spec:
-    selector:
-        app: client-app-chat
-    ports:
-        - protocol: TCP
-          port: 3000
-          targetPort: 3000
-          nodePort: 30009
-    type: NodePort
+  selector:
+    app: client-app-chat
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+    nodePort: 30009
+  type: NodePort
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
     name: client-app-chat-config
 data:
-    # REACT_APP_BACK_END_URL: "http://localhost:30000"
-    REACT_APP_BACK_END_URL: 'http://localhost'
-    REACT_APP_SOCKET_URL: 'http://localhost'
+  REACT_APP_BACK_END_URL: "http://35.213.138.0:30000"
+  REACT_APP_SOCKET_URL: "http://35.213.138.0:30005"
+  # REACT_APP_BACK_END_URL: "http://localhost"
+  # REACT_APP_SOCKET_URL: "http://localhost"
