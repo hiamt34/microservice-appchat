@@ -32,14 +32,15 @@ spec:
   - protocol: TCP
     port: 3000
     targetPort: 3000
-    # nodePort: 30009
-  type: ClusterIP
+    nodePort: 30009
+  type: NodePort
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: client-app-chat-config
 data:
-  # REACT_APP_BACK_END_URL: "http://localhost:30000"
-  REACT_APP_BACK_END_URL: "http://localhost"
-  REACT_APP_SOCKET_URL: "http://localhost"
+  REACT_APP_BACK_END_URL: "http://localhost:30000"
+  REACT_APP_SOCKET_URL: "http://localhost:30005"
+  # REACT_APP_BACK_END_URL: "http://localhost"
+  # REACT_APP_SOCKET_URL: "http://localhost"
