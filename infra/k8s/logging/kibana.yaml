@@ -20,6 +20,8 @@ spec:
           image: kibana:7.16.3
           ports:
             - containerPort: 5601
+      nodeSelector:
+        nodeWorker: slave1
 
 ---
 apiVersion: v1
