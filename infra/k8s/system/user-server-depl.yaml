@@ -38,6 +38,18 @@ spec:
               value: "user-server"
           ports:
             - containerPort: 1002
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 1003
+          #   initialDelaySeconds: 10
+          #   periodSeconds: 5
+          # readinessProbe:
+          #   httpGet:
+          #     path: /ready
+          #     port: 1003
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5
           volumeMounts:
             - name: log
               mountPath: /usr/src/app/logs

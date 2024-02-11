@@ -35,6 +35,8 @@ spec:
             limits:
               memory: 1Gi
               cpu: 1
+      nodeSelector:
+        nodeWorker: slave1
 
 ---
 apiVersion: v1
