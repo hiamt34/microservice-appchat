@@ -23,6 +23,8 @@ spec:
           volumeMounts:
             - name: logstash-config
               mountPath: /usr/share/logstash/pipeline
+      nodeSelector:
+        nodeWorker: slave1
       volumes:
         - name: logstash-config
           configMap:
