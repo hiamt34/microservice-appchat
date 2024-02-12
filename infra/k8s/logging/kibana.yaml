@@ -31,7 +31,12 @@ metadata:
   labels:
     component: kibana
 spec:
+  type: NodePort
   ports:
-  - port: 5601
+    - name: kibana-nodeport
+      protocol: TCP
+      port: 5601
+      targetPort: 5601
+      nodePort: 35601
   selector:
     component: kibana
