@@ -44,6 +44,7 @@ metadata:
     labels:
         app: jaeger
 spec:
+    type: NodePort
     ports:
         - name: udp
           port: 6831
@@ -54,6 +55,7 @@ spec:
           port: 5778
         - name: http-query16686
           port: 16686
+          nodePort: 30086
         - name: http-collector
           port: 14268
         - name: admin-http

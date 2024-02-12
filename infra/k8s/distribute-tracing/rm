@@ -1,2 +1,4 @@
 chạy sau elasticsearch
+kubectl port-forward service/jaeger 30086:16686
+
 http://localhost:30086/search
