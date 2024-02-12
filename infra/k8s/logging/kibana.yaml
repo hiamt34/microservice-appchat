@@ -37,6 +37,6 @@ spec:
       protocol: TCP
       port: 5601
       targetPort: 5601
-      nodePort: 25601
+      nodePort: 31601
   selector:
     component: kibana
