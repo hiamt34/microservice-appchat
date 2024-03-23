@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: client-depl
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: client-app-chat
+    template:
+        metadata:
+            labels:
+                app: client-app-chat
+        spec:
+            containers:
+                - name: client-app-chat
+                  image: hiamt34/client-app-chat
+                  ports:
+                      - containerPort: 3000
+                  envFrom:
+                      - configMapRef:
+                            name: client-app-chat-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: client-app-chat-serv
+spec:
+  selector:
+    app: client-app-chat
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+    nodePort: 30009
+  type: NodePort
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: client-app-chat-config
+data:
+  REACT_APP_BACK_END_URL: "http://localhost:30000"
+  REACT_APP_SOCKET_URL: "http://localhost:30005"
+  # REACT_APP_BACK_END_URL: "http://localhost"
+  # REACT_APP_SOCKET_URL: "http://localhost"

@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-pvc-1
+  namespace: grafana
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-storage # đang dùng on permise phải cấu hình storageClass trước xong đến PV
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: grafana
+  labels:
+    app: grafana
+  name: grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http-grafana
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /robots.txt
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 2
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 750Mi
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: local-pvc-1
+      nodeSelector: # pod sử dụng pvc phải nằm trong node chứa local-storage
+        kubernetes.io/hostname: appchat-slave-3-monitoring # đoạn này phải khớp với lable của node sd: kubectl get nodes --show-labels để check label
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      volumes:
+        - name: local-pvc-1
+          persistentVolumeClaim:
+            claimName: local-pvc-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: grafana
+  name: grafana
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: grafana
+  type: ClusterIP

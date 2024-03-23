@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+# provisioner: kubernetes.io/no-provisioner chỉ ra rằng không có dynamic provisioning được sử dụng cho StorageClass này, phù hợp với việc sử dụng local volumes.
+# volumeBindingMode: WaitForFirstConsumer nghĩa là việc liên kết PV với PVC sẽ được trì hoãn cho đến khi có Pod yêu cầu PVC đó. Điều này hữu ích cho local volumes vì nó đảm bảo PV được liên kết với một node mà Pod đang chạy.

@@ -20,6 +20,22 @@ spec:
           image: kibana:7.16.3
           ports:
             - containerPort: 5601
+          env:
+          - name: "ELASTICSEARCH_USERNAME"
+            value: "kibana_system"
+          - name: "ELASTICSEARCH_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                name: elasticsearch-passwords
+                key: kibana_system
+          - name: "ELASTICSEARCH_HOSTS"
+            value: "http://elasticsearch:9200"
+          - name: "XPACK_SECURITY_ENCRYPTIONKEY"
+            value: "YHODxp265VMIfqkYMQepGYIM8kLTjvvAOF2mgRAhd20="
+          - name: "XPACK_REPORTING_ENCRYPTIONKEY"
+            value: "YHODxp265VMIfqkYMQepGYIM8kLTjvvAOF2mgRAhd20="
+          - name: "XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY"
+            value: "YHODxp265VMIfqkYMQepGYIM8kLTjvvAOF2mgRAhd20="
       nodeSelector:
         nodeWorker: slave1
 

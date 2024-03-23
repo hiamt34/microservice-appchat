@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kubernetes-dashboard  # Sử dụng namespace phù hợp với Service của bạn
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx  # Đảm bảo tên lớp ingress phù hợp với IngressClass bạn đã tạo
+  rules:
+  - host: k8s-dashboard.hiamt9a.io.vn  # Thay đổi thành tên miền của bạn
+    http:
+      paths:
+      - path: /  # Đường dẫn URI bạn muốn cấu hình (ví dụ: /, /app, v.v.)
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard  # Tên của Service bạn muốn phơi bày
+            port:
+              number: 443  # Port của Service

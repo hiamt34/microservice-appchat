@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: hiamt9a-cert
+  namespace: default
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: d17dccn195@gmail.com
+    privateKeySecretRef:
+      name: hiamt9a-cert
+    solvers:
+    - selector: {}
+      http01:
+        ingress:
+          ingressClassName: nginx

@@ -36,7 +36,9 @@ subjects:
 5. Apply the ClusterRole configuration:
 kubectl apply -f dash-clusterrole.yaml
 
-6. In the terminal, run kubectl proxy
+6. In the terminal, 
+
+run kubectl proxy
 
 You must keep this terminal window open and the proxy running!
 
@@ -63,3 +65,5 @@ The above steps can be found in the official documentation:
 
 https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
 
+
+//chu y: khi dung k8s - onpermise toi dung nginx de dieu huong trafix ve loadbalancing metalb khi proxy pass phai dung https

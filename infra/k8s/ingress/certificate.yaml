@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1 
+kind: Certificate
+metadata:
+  name: hiamt9a-cert
+  namespace: default
+spec:
+  secretName: hiamt9a-cert
+  issuerRef:
+    name: hiamt9a-cert
+  commonName: hiamt9a.io.vn
+  dnsNames:
+    - hiamt9a.io.vn
+    - www.hiamt9a.io.vn

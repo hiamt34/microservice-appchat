@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv-1
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: local-storage
+  local:
+    path: /persistent-volume/disks/ssd1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - appchat-slave-3-monitoring
+
+# name: Tên của PersistentVolume.
+# storage: Dung lượng lưu trữ mà PV cung cấp.
+# volumeMode: Chế độ volume, thường là Filesystem.
+# accessModes: Chế độ truy cập, ReadWriteOnce chỉ ra rằng volume có thể được gắn kết với quyền đọc/viết trên một node duy nhất.
+# persistentVolumeReclaimPolicy: Chính sách tái sử dụng, Retain giữ lại PV sau khi PVC bị xóa.
+# storageClassName: Tên StorageClass, sử dụng local-storage hoặc một tên mà bạn đã tạo.
+# local.path: Đường dẫn lưu trữ trên node.
+# nodeAffinity: Đảm bảo PV chỉ được sử dụng bởi pods chạy trên một node cụ thể.

@@ -1,0 +1,34 @@
+git clone: https://devopscube.com/setup-prometheus-monitoring-on-kubernetes/
+https://github.com/techiescamp/kubernetes-prometheus
+
+*prometheus
+kubectl create namespace monitoring
+kubectl create -f clusterRole.yaml
+kubectl create -f config-map.yaml
+kubectl create  -f prometheus-deployment.yaml 
+
+*grafana
+kubectl create namespace grafana
+kubectl apply -f persistent-volume/storage-class.yaml
+kubectl apply -f persistent-volume/persistent-volume.yaml
+kubectl apply -f monitoring/prometheus-deployment.yaml
+
+###
+phai them anotation thi moi thu thap duoc metric
+  annotations:
+    prometheus.io/scrape: "true"
+###
+# Không nhất thiết. Sự hiểu lầm phổ biến này xuất phát từ việc nhầm lẫn giữa các loại lưu trữ và cách chúng được truy cập trong Kubernetes. Sự phụ thuộc vào vị trí của Node áp dụng chủ yếu cho các PersistentVolumes (PVs) sử dụng lưu trữ cục bộ (local storage), không phải cho tất cả các loại PV. Dưới đây là cách thức hoạt động:
+
+# Local Storage
+# Khi sử dụng Local PersistentVolumes, PV được gắn với một node cụ thể. Pod yêu cầu sử dụng PVC (PersistentVolumeClaim) liên kết với một PV cục bộ sẽ cần phải được lên lịch trên cùng một node đó. Điều này đảm bảo rằng Pod có thể truy cập lưu trữ cục bộ mà không cần qua mạng, giúp tối ưu hóa hiệu suất cho các ứng dụng nhạy cảm với độ trễ.
+
+# Network Storage
+# Đối với các PV sử dụng lưu trữ mạng, như NFS, iSCSI, Cloud Storage (AWS EBS, Google Persistent Disk, Azure Disk), Ceph, v.v., Pod không cần phải chạy trên cùng một Node với PV. Lưu trữ mạng cho phép bất kỳ Node nào trong cluster kết nối và truy cập dữ liệu qua mạng, do đó không giới hạn Pod phải chạy trên Node cụ thể nào.
+
+# Khi một PVC yêu cầu lưu trữ và được liên kết với một PV, Kubernetes sẽ tự động chăm sóc việc gắn kết lưu trữ đó vào Pod, bất kể Pod đó được lên lịch chạy trên Node nào, miễn là loại lưu trữ đó hỗ trợ truy cập qua mạng.
+
+# Tóm lược
+# Local PVs: Cần Pod và PV cùng nằm trên một Node.
+# Networked PVs: Không yêu cầu Pod và PV phải cùng nằm trên một Node; truy cập lưu trữ qua mạng.
+# Quyết định sử dụng loại lưu trữ nào phụ thuộc vào yêu cầu cụ thể của ứng dụng, bao gồm yếu tố như hiệu suất, độ trễ, và tính linh hoạt trong việc lên lịch Pod.

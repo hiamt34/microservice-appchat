@@ -1,0 +1,29 @@
+kubectl port-forward svc/kibana 5601:5601
+thêm presiten voulume cho elasticsearch
+
+- vao elactic
+./bin/elasticsearch-setup-passwords auto
+vd ra the nay:
+# Changed password for user apm_system
+# PASSWORD apm_system = 6CbRYcdOTBhAOIYdxQW5
+
+# Changed password for user kibana_system
+# PASSWORD kibana_system = eiiBijXXxNOh90ohc7Gh
+
+# Changed password for user kibana
+# PASSWORD kibana = eiiBijXXxNOh90ohc7Gh
+
+# Changed password for user logstash_system
+# PASSWORD logstash_system = xlJkmcKV0usgHX3CL6Cr
+
+# Changed password for user beats_system
+# PASSWORD beats_system = xkwR79OpsySffY1pbIs4
+
+# Changed password for user remote_monitoring_user
+# PASSWORD remote_monitoring_user = hGomVjtcpQfFuSaJ7sRG
+
+# Changed password for user elastic
+# PASSWORD elastic = 5pH48NOG6jwNcLnxOGdC
+de lay passwords
+- dung 
+echo -n '5pH48NOG6jwNcLnxOGdC' | base64

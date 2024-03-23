@@ -36,6 +36,13 @@ spec:
                         value: 'elasticsearch'
                       - name: ES_SERVER_URLS
                         value: 'http://elasticsearch:9200'
+                      - name: ES_USERNAME
+                        value: 'elastic'
+                      - name: ES_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: elasticsearch-passwords
+                            key: elastic
 ---
 apiVersion: v1
 kind: Service

@@ -24,10 +24,21 @@ spec:
             - containerPort: 9300
               name: nodes
           env:
-            - name: JAVA_TOOL_OPTIONS
-              value: -Xmx1g -Xms1g
+            # - name: JAVA_TOOL_OPTIONS
+            #   value: -Xmx1g -Xms1g
             - name: discovery.type
               value: single-node
+            - name: "xpack.security.enabled"
+              value: "true"
+            - name: "ELASTIC_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-passwords
+                  key: elastic
+            # - name: "ELASTIC_PASSWORD"
+            #   value: "admin"
+            # - name: "ELASTIC_USERNAME"
+            #   value: "admin"
           resources:
             requests:
               memory: 1Gi
