@@ -19,3 +19,26 @@ data:
         password => "5pH48NOG6jwNcLnxOGdC"
       }
     }
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: logstash
+#   labels:
+#     component: logstash
+# data:
+#   access-log.conf: |
+#     input {
+#       beats {
+#         port => "5044"
+#       }
+#     }
+
+#     output {
+#       elasticsearch {
+#         hosts => ["elasticsearch:9200"]
+#         user => "elastic"
+#         password => "5pH48NOG6jwNcLnxOGdC"
+#         index => "%{[filebeat_name]}-%{+YYYY.MM.dd}"  # Sử dụng trường tùy chỉnh cho tên index
+#       }
+#     }

@@ -1,0 +1,9 @@
+chay cai nay truoc chay cert
+apply -f https://github.com/jetstack/cert-manager/releases/download/v1.4.0/cert-manager.yaml
+
+https://hocdevops.com/kubernetes/nginx-ingress-va-cac-config-huu-ich-cho-ban/
+giai thich cac anotation: https://hocdevops.com/kubernetes/nginx-ingress-va-cac-config-huu-ich-cho-ban/#0fef
+
+https://bizflycloud.vn/tin-tuc/cach-trien-khai-nginx-ingress-voi-cert-manager-tren-bizfly-kubernetes-engine-20230504163704406.htm
+https://nvtienanh.info/blog/cai-dat-metallb-va-ingress-nginx-tren-bare-metal-kubernetes-cluster
+https://bizflycloud.vn/tin-tuc/cach-trien-khai-nginx-ingress-voi-cert-manager-tren-bizfly-kubernetes-engine-20230504163704406.htm
